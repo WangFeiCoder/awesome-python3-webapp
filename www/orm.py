@@ -28,6 +28,13 @@ async def create_pool(loop, **kw):
     )
 
 
+async def close_pool():
+    logging.info('close database connection pool...')
+    global __pool
+    __pool.close()
+    await __pool.wait_closed()
+
+
 async def select(sql, args, size=None):
     log(sql, args)
     global __pool
@@ -38,6 +45,7 @@ async def select(sql, args, size=None):
                 rs = await cur.fetchmany(size)
             else:
                 rs = await cur.fetchall()
+            await cur.close()
         logging.info('rows returned: %s' % len(rs))
         return rs
 
@@ -51,6 +59,7 @@ async def execute(sql, args, autocommit=True):
             async with conn.cursor(aiomysql.DictCursor) as cur:
                 await cur.execute(sql.replace('?', '%s'), args)
                 affected = cur.rowcount
+                await cur.close()
             if not autocommit:
                 await conn.commit()
         except BaseException as e:
@@ -110,27 +119,29 @@ class TextField(Field):
 
 
 class ModelMetaclass(type):
-
     def __new__(cls, name, bases, attrs):
         if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
         tableName = attrs.get('__table__', None) or name
+        logging.info('found model: %s (table: %s)' % (name, tableName))
         mappings = dict()
-        fields = []
+        fields = []  # 可以理解为列名称
         primaryKey = None
         for k, v in attrs.items():
             if isinstance(v, Field):
+                logging.info('  found mapping: %s ==> %s' % (k, v))
                 mappings[k] = v
-                if v.primary_key:
-                    # 找到主键:
-                    primaryKey = k
+                if v.primary_key:  # 判断主键并记录
+                    if primaryKey:
+                        raise RuntimeError('Duplicate primary key for field: %s' % k)
+                    primaryKey = k  # 记录主键
                 else:
                     fields.append(k)
         if not primaryKey:
-            raise BaseException('Primary key not found.')
+            raise RuntimeError('Primary key not found.')
         for k in mappings.keys():
-            attrs.pop(k)
-        escaped_fields = list(map(lambda f: '`%s`' % f, fields))
+            attrs.pop(k)  # 删除attrs里属性，防止与实例属性冲突
+        escaped_fields = list(map(lambda f: ' %s ' % f, fields))
         attrs['__mappings__'] = mappings  # 保存属性和列的映射关系
         attrs['__table__'] = tableName
         attrs['__primary_key__'] = primaryKey  # 主键属性名
@@ -162,18 +173,18 @@ class Model(dict, metaclass=ModelMetaclass):
         return getattr(self, key, None)
 
     def getValueOrDefault(self, key):
-        value = self.getValue(key)
+        value = getattr(self, key, None)
         if value is None:
             field = self.__mappings__[key]
             if field.default is not None:
-                value = field.default() if callable(field.default) else field.default
+                value = field.default() if callable(field.default) else field.default  # callable(obj)判断对象是否可调用
                 logging.debug('using default value for %s: %s' % (key, str(value)))
                 setattr(self, key, value)
         return value
 
     @classmethod
     async def findAll(cls, where=None, args=None, **kw):
-        ' find objects by where clause. '
+        'find objects by where clause'
         sql = [cls.__select__]
         if where:
             sql.append('where')
@@ -200,7 +211,7 @@ class Model(dict, metaclass=ModelMetaclass):
 
     @classmethod
     async def findNumber(cls, selectField, where=None, args=None):
-        ' find number by select and where. '
+        'find number by select and where'
         sql = ['select %s _num_ from `%s`' % (selectField, cls.__table__)]
         if where:
             sql.append('where')
@@ -212,7 +223,7 @@ class Model(dict, metaclass=ModelMetaclass):
 
     @classmethod
     async def find(cls, pk):
-        ' find object by primary key. '
+        'find object by primary key'
         rs = await select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
         if len(rs) == 0:
             return None
