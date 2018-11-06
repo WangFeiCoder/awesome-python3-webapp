@@ -2,26 +2,35 @@
 
 {% block title %}日志{% endblock %}
 
+{% block beforehead %}
+
+<script>
+</script>
+
+{% endblock %}
+
 {% block content %}
+
     <div class="uk-width-medium-3-4">
     {% for blog in blogs %}
         <article class="uk-article">
             <h2><a href="/blog/{{ blog.id }}">{{ blog.name }}</a></h2>
             <p class="uk-article-meta">发表于{{ blog.created_at|datetime }}</p>
             <p>{{ blog.summary }}</p>
-            <p><a href="/blog/{{ blog.id }}">继续阅读 <i class="uk-icon-angle-double-right"></i></a></p>
+            <p><a href="/blog/{{ blog.id }}">瞧瞧 <i class="uk-icon-angle-double-right"></i></a></p>
         </article>
         <hr class="uk-article-divider">
     {% endfor %}
+    {{ pagination('/?page=', page) }}
     </div>
 
     <div class="uk-width-medium-1-4">
         <div class="uk-panel uk-panel-header">
-            <h3 class="uk-panel-title">友情链接</h3>
+            <h3 class="uk-panel-title">我的作品展示</h3>
             <ul class="uk-list uk-list-line">
-                <li><i class="uk-icon-thumbs-o-up"></i> <a href="#" target="_blank">Coding</a></li>
-                <li><i class="uk-icon-thumbs-o-up"></i> <a href="#" target="_blank">Reading</a></li>
-                <li><i class="uk-icon-thumbs-o-up"></i> <a href="#" target="_blank">Learning</a></li>
+                <li><a target="_blank" href="/">我的Blog</a></li>
+                <li><a target="_blank" href="http://www.justonelab.com/">学HTML时，制作的小站</a></li>
+                <li><a target="_blank" href="https://github.com/justoneliu">我的GitHub</a></li>
             </ul>
         </div>
     </div>

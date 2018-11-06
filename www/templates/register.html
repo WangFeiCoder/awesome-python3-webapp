@@ -56,36 +56,36 @@ $(function () {
 
 {% block content %}
 
-    <div class="uk-width-2-3">
-        <h1>欢迎注册！</h1>
+    <div class="uk-width-1-1">
+        <h1 class="uk-text-center">注册</h1>
         <form id="vm" v-on="submit: submit" class="uk-form uk-form-stacked">
             <div class="uk-alert uk-alert-danger uk-hidden"></div>
             <div class="uk-form-row">
-                <label class="uk-form-label">名字:</label>
+                <label class="uk-form-label">昵称:</label>
                 <div class="uk-form-controls">
-                    <input v-model="name" type="text" maxlength="50" placeholder="名字" class="uk-width-1-1">
+                    <input v-model="name" type="text" maxlength="50" placeholder="呢称" class="uk-width-1-1">
                 </div>
             </div>
             <div class="uk-form-row">
-                <label class="uk-form-label">电子邮件:</label>
+                <label class="uk-form-label">email:</label>
                 <div class="uk-form-controls">
                     <input v-model="email" type="text" maxlength="50" placeholder="your-name@example.com" class="uk-width-1-1">
                 </div>
             </div>
             <div class="uk-form-row">
-                <label class="uk-form-label">输入口令:</label>
+                <label class="uk-form-label">设置登录口令:</label>
                 <div class="uk-form-controls">
-                    <input v-model="password1" type="password" maxlength="50" placeholder="输入口令" class="uk-width-1-1">
+                    <input v-model="password1" type="password" maxlength="50" placeholder="口令" class="uk-width-1-1">
                 </div>
             </div>
             <div class="uk-form-row">
-                <label class="uk-form-label">重复口令:</label>
+                <label class="uk-form-label">请再次输入口令:</label>
                 <div class="uk-form-controls">
-                    <input v-model="password2" type="password" maxlength="50" placeholder="重复口令" class="uk-width-1-1">
+                    <input v-model="password2" type="password" maxlength="50" placeholder="口令" class="uk-width-1-1">
                 </div>
             </div>
-            <div class="uk-form-row">
-                <button type="submit" class="uk-button uk-button-primary"><i class="uk-icon-user"></i> 注册</button>
+            <div class="uk-form-row uk-text-center">
+                <button type="submit" class="uk-button uk-button-primary">提交</button>
             </div>
         </form>
     </div>
